@@ -1,13 +1,11 @@
-'use strict'
-
-require('dotenv').config();
+'use strict';
 
 const express = require('express');
-const pg = require('pg');
-const cors = require('cors');
-const PORT = process.env.PORT || 3000;
 const app = express();
+require('dotenv').config();
+const cors = require('cors');
 app.use(cors());
+const PORT = process.env.PORT || 3000;
 
 function Location(city, geo) {
     this.search_query = city;
@@ -26,6 +24,7 @@ app.get('/location', (request, response) => {
     let search_query = request.query.city;
     let geoData = require('/data/location.json');
     let returnLocation = new Location(search_query, geoData[0]);
+    console.log(returnLocation)
 
     response.status(200).send(returnLocation);
     } catch(error) {
@@ -45,3 +44,6 @@ app.get('/weather', (request, response) => {
     } 
 })
 
+app.listen(PORT, () => {
+    console.log('Server is running on PORT: ' + PORT);
+});
