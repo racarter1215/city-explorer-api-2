@@ -15,15 +15,15 @@ function Location(city, geo) {
     this.longitude = geo.lon;
 }
 
-function Weather(date, forecast) {
-    this.forecast = forecast;
-    this.time = new Date(date).toDateString();
+function Weather(obj) {
+    this.forecast = obj.weather.description;
+    this.time = new Date(obj.valid_date).toDateString();
 }
 
 app.get('/location', (request, response) => {
     try {
     let search_query = request.query.city;
-    let geoData = require('/data/location.json');
+    let geoData = require('./data/location.json');
     let returnLocation = new Location(search_query, geoData[0]);
     console.log(returnLocation)
 
@@ -35,10 +35,11 @@ app.get('/location', (request, response) => {
 
 app.get('/weather', (request, response) => {
     try {
-    let forecast = request.query.forecast;
-    let weatherData = require('/data/weather.json');
-    let returnWeather = new Weather(forecast, weatherData[0]);
-
+    let weatherData = require('./data/weather.json');
+    console.log('test');
+    let returnWeather = weatherData.data.map(weatherValue => {
+         return new Weather(weatherValue);
+    })
     response.status(200).send(returnWeather);
     } catch(error) {
       response.status(500).send('this did not work as expected');  
