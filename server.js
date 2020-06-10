@@ -1,13 +1,11 @@
-'use strict'
-
-require('dotenv').config();
+'use strict';
 
 const express = require('express');
-const pg = require('pg');
-const cors = require('cors');
-const PORT = process.env.PORT || 3000;
 const app = express();
+require('dotenv').config();
+const cors = require('cors');
 app.use(cors());
+const PORT = process.env.PORT || 3000;
 
 function Location(city, geo) {
     this.search_query = city;
@@ -26,20 +24,26 @@ app.get('/location', (request, response) => {
     let search_query = request.query.city;
     let geoData = require('/data/location.json');
     let returnLocation = new Location(search_query, geoData[0]);
-    }
-    let returnLocation = {
-        search_query: search_query,
-        formatted_query: geoData[0].display_name,
-        latitude: geoData[0].lat,
-        longitude: geoData[0].lon
-    }
-    response.status(200).send(returnLocation);
-} 
-catch(err) {
-    response.status(500).send('this did not go as planned');
-}
+    console.log(returnLocation)
 
+    response.status(200).send(returnLocation);
+    } catch(error) {
+      response.status(500).send('this did not work as expected');  
+    } 
+})
+
+app.get('/weather', (request, response) => {
+    try {
+    let forecast = request.query.forecast;
+    let weatherData = require('/data/weather.json');
+    let returnWeather = new Weather(forecast, weatherData[0]);
+
+    response.status(200).send(returnWeather);
+    } catch(error) {
+      response.status(500).send('this did not work as expected');  
+    } 
+})
 
 app.listen(PORT, () => {
-    console.log(`listening on ${PORT}`);
-  })
+    console.log('Server is running on PORT: ' + PORT);
+});
