@@ -44,6 +44,10 @@ app.get('/weather', (request, response) => {
     } 
 })
 
+app.get('*',(request, response) => {
+    response.status(404).send('Sorry, something is wrong');
+})
+
 app.listen(PORT, () => {
     console.log('Server is running on PORT: ' + PORT);
 });

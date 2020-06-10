@@ -1,5 +1,5 @@
 {
-  "name": "city_explorer_api",
+  "name": "city-explorer-api-2",
   "version": "1.0.0",
   "description": "# author: Robert Carter",
   "main": "server.js",
@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/racarter1215/city_explorer_api.git"
+    "url": "git+https://github.com/racarter1215/city-explorer-api-2.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/racarter1215/city_explorer_api/issues"
+    "url": "https://github.com/racarter1215/city-explorer-api-2/issues"
   },
-  "homepage": "https://github.com/racarter1215/city_explorer_api#readme",
+  "homepage": "https://github.com/racarter1215/city-explorer-api-2#readme",
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
