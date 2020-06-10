@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const superagent = require('superagent');
 const app = express();
 require('dotenv').config();
 const cors = require('cors');
@@ -21,22 +22,21 @@ function Weather(obj) {
 }
 
 app.get('/location', (request, response) => {
-    try {
-    let search_query = request.query.city;
-    let geoData = require('./data/location.json');
-    let returnLocation = new Location(search_query, geoData[0]);
-    console.log(returnLocation)
+    let city= request.query.city;
+    let locationUrl = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEO_DATA_API_KEY}&q=${city}&format=json`;
 
-    response.status(200).send(returnLocation);
-    } catch(error) {
-      response.status(500).send('this did not work as expected');  
-    } 
-})
+        superagent.get(locationUrl)
+        .then(finalLocationStuff => {
+            let location = new Location(city, finalLocationStuff.body[0]);
+            response.status(200).send(location);
+        }).catch(error => {
+        response.status(500).send('this did not work as expected');  
+        }) 
+    })
 
 app.get('/weather', (request, response) => {
     try {
     let weatherData = require('./data/weather.json');
-    console.log('test');
     let returnWeather = weatherData.data.map(weatherValue => {
          return new Weather(weatherValue);
     })
