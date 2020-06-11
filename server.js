@@ -41,14 +41,10 @@ app.get('/location', (request, response) => {
     const locationUrl = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEOCODE_API_KEY}&q=${city}&format=json`;
     superagent.get(locationUrl) 
         .then(finalLocationStuff => {
-            const data = finalLocationStuff.body;
-            for (var i in data) {
-                if (data[i].display_name[0].search(city)) {
-                    const location = new Location(city, data[i]);
-                    response.send(location);
-                    
-                }
-            }
+            console.log(finalLocationStuff.body);
+            const location = new Location(city, finalLocationStuff.body[0]);
+            console.log(location);
+            response.send(location);
         }).catch(error => {
         errorHandler(error, request, response);
     });
