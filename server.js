@@ -21,6 +21,19 @@ function Weather(obj) {
     this.time = new Date(obj.valid_date).toDateString();
 }
 
+function Trails(trail) {
+    this.name = trail.name;
+    this.location = trail.location;
+    this.length = trail.length;
+    this.stars = trail.stars;
+    this.star_votes = trail.starVotes;
+    this.summary = trail.summary;
+    this.trail_url = trail.url;
+    this.conditions = trail.conditions;
+    this.condition_date = trail.conditionDate;
+    this.condition_time = trail.conditionTime;
+}
+
 app.get('/location', (request, response) => {
     let city= request.query.city;
     let locationUrl = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEO_DATA_API_KEY}&q=${city}&format=json`;
@@ -30,21 +43,39 @@ app.get('/location', (request, response) => {
             let location = new Location(city, finalLocationStuff.body[0]);
             response.status(200).send(location);
         }).catch(error => {
-        response.status(500).send('this did not work as expected');  
+        response.status(500).send('location did not work as expected');  
         }) 
     })
 
 app.get('/weather', (request, response) => {
-    try {
-    let weatherData = require('./data/weather.json');
-    let returnWeather = weatherData.data.map(weatherValue => {
-         return new Weather(weatherValue);
-    })
-    response.status(200).send(returnWeather);
-    } catch(error) {
-      response.status(500).send('this did not work as expected');  
-    } 
+    const { latitude, longitude} = request.query;
+    const weatherUrl = `https://api.weatherbit.io/v2.0/forecast/daily?lat=${latitude}&lon=${longitude}&key=${process.env.WEATHER_API_KEY}`
+    
+    superagent.get(weatherUrl)
+        .then(finalWeatherStuff => {
+            const data = finalWeatherStuff.body.data;
+            response.send(data.map(weatherValue => {
+                return new Weather(weatherValue);
+            }))
+        }).catch(error => {
+      response.status(500).send('weather did not work as expected');  
+    }) 
 })
+
+app.get('/trails', (request, response) => {
+    const { latitude, longitude} = request.query;
+    const locationUrl = `https://www.hikingproject.com/data/get-trails?lat=${latitude}&lon=${longitude}&key=${process.env.TRAIL_API_KEY}`
+
+        superagent.get(locationUrl)
+        .then(finalTrailStuff => {
+            const data = finalTrailStuff.body.trails;
+            response.send(data.map(trailValue => {
+                return new Trails(trailValue);
+            }));
+        }).catch(error => {
+        response.status(500).send('trails did not work as expected');  
+        }) 
+    })
 
 app.get('*',(request, response) => {
     response.status(404).send('Sorry, something is wrong');
