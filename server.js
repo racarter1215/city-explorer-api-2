@@ -36,19 +36,6 @@ function Trails(trail) {
     this.condition_time = trail.conditionTime;
 }
 
-// app.get('/location', (request, response) => {
-//     let city= request.query.city;
-//     let locationUrl = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEO_DATA_API_KEY}&q=${city}&format=json`;
-
-//         superagent.get(locationUrl)
-//         .then(finalLocationStuff => {
-//             let location = new Location(city, finalLocationStuff.body[0]);
-//             response.status(200).send(location);
-//         }).catch(error => {
-//             errorHandler(error, request, response);;  
-//         }) 
-//     })
-
 app.get('/location', (request, response) => {
     const city = request.query.city;
     const locationUrl = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEOCODE_API_KEY}&q=${city}&format=json`;
