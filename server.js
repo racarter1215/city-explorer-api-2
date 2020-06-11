@@ -2,6 +2,8 @@
 
 const express = require('express');
 const superagent = require('superagent');
+const pg = require('pg');
+const dbClient = new pg.Client(process.env.DATABASE_URL);
 const app = express();
 require('dotenv').config();
 const cors = require('cors');
@@ -34,18 +36,36 @@ function Trails(trail) {
     this.condition_time = trail.conditionTime;
 }
 
-app.get('/location', (request, response) => {
-    let city= request.query.city;
-    let locationUrl = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEO_DATA_API_KEY}&q=${city}&format=json`;
+// app.get('/location', (request, response) => {
+//     let city= request.query.city;
+//     let locationUrl = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEO_DATA_API_KEY}&q=${city}&format=json`;
 
-        superagent.get(locationUrl)
+//         superagent.get(locationUrl)
+//         .then(finalLocationStuff => {
+//             let location = new Location(city, finalLocationStuff.body[0]);
+//             response.status(200).send(location);
+//         }).catch(error => {
+//             errorHandler(error, request, response);;  
+//         }) 
+//     })
+
+app.get('/location', (request, response) => {
+    const city = request.query.city;
+    const locationUrl = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEOCODE_API_KEY}&q=${city}&format=json`;
+    superagent.get(locationUrl) 
         .then(finalLocationStuff => {
-            let location = new Location(city, finalLocationStuff.body[0]);
-            response.status(200).send(location);
+            const data = finalLocationStuff.body;
+            for (var i in data) {
+                if (data[i].display_name[0].search(city)) {
+                    const location = new Location(city, data[i]);
+                    response.send(location);
+                    
+                }
+            }
         }).catch(error => {
-        response.status(500).send('location did not work as expected');  
-        }) 
-    })
+        handleError(error, response);
+    });
+});
 
 app.get('/weather', (request, response) => {
     const { latitude, longitude} = request.query;
@@ -58,7 +78,7 @@ app.get('/weather', (request, response) => {
                 return new Weather(weatherValue);
             }))
         }).catch(error => {
-      response.status(500).send('weather did not work as expected');  
+            errorHandler(error, request, response);;  
     }) 
 })
 
@@ -73,13 +93,17 @@ app.get('/trails', (request, response) => {
                 return new Trails(trailValue);
             }));
         }).catch(error => {
-        response.status(500).send('trails did not work as expected');  
+            errorHandler(error, request, response);;  
         }) 
     })
 
 app.get('*',(request, response) => {
     response.status(404).send('Sorry, something is wrong');
 })
+
+function errorHandler(error, request, response) {
+    response.status(500).send({status: 500, responseText: 'That did not go as expected'});
+  }
 
 app.listen(PORT, () => {
     console.log(`Server is running on ${PORT}`);
