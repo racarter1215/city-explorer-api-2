@@ -44,14 +44,14 @@ function Yelp(obj) {
     this.url = obj.url;
 }
 
-function Movie(element) {
-    this.title = element.title;
-    this.overview = element.overview;
-    this.average_votes = element.vote_average;
-    this.total_votes = element.vote_count;
-    this.image_url = `https://image.tmdb.org/t/p/w500${element.backdrop_path}`;
-    this.popularity = element.popularity;
-    this.released_on = element.release.date;
+function Movie(obj) {
+    this.title = obj.title;
+    this.overview = obj.overview;
+    this.average_votes = obj.vote_average;
+    this.total_votes = obj.vote_count;
+    this.image_url = `https://image.tmdb.org/t/p/w500${obj.poster_path}`;
+    this.popularity = obj.popularity;
+    this.released_on = obj.release.date;
 }
 
 app.get('/location', (request, response) => {
@@ -114,18 +114,32 @@ app.get('/trails', (request, response) => {
             }) 
     })
 
-app.get('/yelp', (request, response) => {
-    const { latitude, longitude } = request.query;
-    let yelpUrl = `https://api.yelp.com/v3/businesses/search?latitude=${latitude}&longitude=${longitude}`;
+app.get('/yelp', yelpHandler);
+
+function yelpHandler(request, response) {
+    let yelpUrl = `https://api.yelp.com/v3/businesses/search`;
+    const page = request.query.page;
+    const numPerPage = 5;
+
+    const start = (page - 1 * numPerPage);
+
+    const queryParams = {
+        latitude: request.query.latitude,
+        longitude: request.query.longitude,
+        limit: numPerPage,
+        offset: start
+    }
   
-    superagent.get(yelpUrl).set({ 'Authorization': 'Bearer ' + process.env.YELP_API_KEY})
-      .then(yelpResponse => {
-        const yelpData = yelpResponse.body.businesses;
-        response.send(yelpData.map(data => {
+    superagent.get(yelpUrl)
+    .set({ 'Authorization': 'Bearer ' + process.env.YELP_API_KEY})
+    .query(queryParams)
+    .then(yelpResponse => {
+        const yelpData = yelpResponse.body.businesses.map(data => {
          return new Yelp(data);
-        }));
+        });
+        response.status(200).send(yelpData);
       }).catch(error => handleError(error, request, response));
-  });
+  };
 
 app.get('/movies', (request, response) => {
     let city = request.query.search_query;
@@ -149,6 +163,9 @@ function errorHandler(error, request, response) {
     response.status(500).send({status: 500, responseText: 'That did not go as expected'});
   }
 
-app.listen(PORT, () => {
-    console.log(`Server is running on ${PORT}`);
-});
+dbClient.connect()
+  .then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server is running on ${PORT}`);
+    });
+  });
