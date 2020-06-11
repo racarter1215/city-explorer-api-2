@@ -9,7 +9,7 @@ require('dotenv').config();
 const cors = require('cors');
 app.use(cors());
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 function Location(city, geo) {
     this.search_query = city;
@@ -50,7 +50,7 @@ app.get('/location', (request, response) => {
                 }
             }
         }).catch(error => {
-        handleError(error, response);
+        errorHandler(error, request, response);
     });
 });
 
