@@ -41,9 +41,7 @@ app.get('/location', (request, response) => {
     const locationUrl = `https://us1.locationiq.com/v1/search.php?key=${process.env.GEOCODE_API_KEY}&q=${city}&format=json`;
     superagent.get(locationUrl) 
         .then(finalLocationStuff => {
-            console.log(finalLocationStuff.body);
             const location = new Location(city, finalLocationStuff.body[0]);
-            console.log(location);
             response.send(location);
         }).catch(error => {
         errorHandler(error, request, response);
@@ -67,9 +65,9 @@ app.get('/weather', (request, response) => {
 
 app.get('/trails', (request, response) => {
     const { latitude, longitude} = request.query;
-    const locationUrl = `https://www.hikingproject.com/data/get-trails?lat=${latitude}&lon=${longitude}&key=${process.env.TRAIL_API_KEY}`
+    const trailUrl = `https://www.hikingproject.com/data/get-trails?lat=${latitude}&lon=${longitude}&key=${process.env.TRAIL_API_KEY}`
 
-        superagent.get(locationUrl)
+        superagent.get(trailUrl)
         .then(finalTrailStuff => {
             const data = finalTrailStuff.body.trails;
             response.send(data.map(trailValue => {
