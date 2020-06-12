@@ -113,12 +113,10 @@ app.get('/trails', (request, response) => {
     })
 
 
-
-function yelpHandler(request, response) {
+app.get('/yelp', (request, response) => {
     let yelpUrl = `https://api.yelp.com/v3/businesses/search`;
     const page = request.query.page;
     const numPerPage = 5;
-
     const start = (page - 1 * numPerPage);
 
     const queryParams = {
@@ -129,7 +127,7 @@ function yelpHandler(request, response) {
     }
   
     superagent.get(yelpUrl)
-    .set({ 'Authorization': 'Bearer ' + process.env.YELP_API_KEY})
+    .set('Authorization', `Bearer ${process.env.YELP_API_KEY}`)
     .query(queryParams)
     .then(yelpResponse => {
         const yelpData = yelpResponse.body.businesses.map(data => {
@@ -137,7 +135,7 @@ function yelpHandler(request, response) {
         });
         response.status(200).send(yelpData);
       }).catch(error => errorHandler(error, request, response));
-  };
+  });
 
 app.get('/movies', (request, response) => {
     let city = request.query.search_query;
@@ -160,8 +158,6 @@ app.get('*',(request, response) => {
 function errorHandler(error, request, response) {
     response.status(500).send({status: 500, responseText: 'That did not go as expected'});
   }
-
-app.get('/yelp', yelpHandler);
 
 dbClient.connect()
   .then(() => {
