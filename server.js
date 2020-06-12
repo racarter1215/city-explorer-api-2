@@ -1,11 +1,12 @@
 'use strict';
 
 const express = require('express');
+require('dotenv').config();
 const superagent = require('superagent');
 const pg = require('pg');
 const dbClient = new pg.Client(process.env.DATABASE_URL);
 const app = express();
-require('dotenv').config();
+
 const cors = require('cors');
 app.use(cors());
 
@@ -62,19 +63,16 @@ app.get('/location', (request, response) => {
 
     dbClient.query(sql, searchValues)
         .then(store => {
-            if (store.rows > 0) {
-                response.status(200).send(record.rows[0]);
+            if (store.rowCount > 0) {
+                response.status(200).send(store.rows[0]);
             } else {
                 superagent.get(locationUrl) 
                     .then(finalLocationStuff => {
                         let location = new Location(city, finalLocationStuff.body[0]);
-                        console.log('first one', location);
                         let sqlAdd = `INSERT INTO locations (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4);`;
-                        let searchValues = [cityQuery, location.formatted_query, location.latitude, location.longitude]
+                        let searchValues = [city, location.formatted_query, location.latitude, location.longitude]
                         dbClient.query(sqlAdd, searchValues)
-                            .then( () => {}).catch();
                         response.status(200).send(location);
-                        console.log('second one', location);
                 }).catch(error => {
                 errorHandler(error, request, response);
                 });
@@ -114,7 +112,7 @@ app.get('/trails', (request, response) => {
             }) 
     })
 
-app.get('/yelp', yelpHandler);
+
 
 function yelpHandler(request, response) {
     let yelpUrl = `https://api.yelp.com/v3/businesses/search`;
@@ -138,7 +136,7 @@ function yelpHandler(request, response) {
          return new Yelp(data);
         });
         response.status(200).send(yelpData);
-      }).catch(error => handleError(error, request, response));
+      }).catch(error => errorHandler(error, request, response));
   };
 
 app.get('/movies', (request, response) => {
@@ -152,7 +150,7 @@ app.get('/movies', (request, response) => {
             response.send(movieData.map(data => {
                 return new Movie(data);
             }));
-        }).catch(error => handleError(error, request, response));
+        }).catch(error => errorHandler(error, request, response));
 }); 
 
 app.get('*',(request, response) => {
@@ -162,6 +160,8 @@ app.get('*',(request, response) => {
 function errorHandler(error, request, response) {
     response.status(500).send({status: 500, responseText: 'That did not go as expected'});
   }
+
+app.get('/yelp', yelpHandler);
 
 dbClient.connect()
   .then(() => {
