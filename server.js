@@ -50,7 +50,7 @@ function Movie(obj) {
     this.overview = obj.overview;
     this.average_votes = obj.vote_average;
     this.total_votes = obj.vote_count;
-    this.image_url = `https://image.tmdb.org/t/p/w500${obj.poster_path}`;
+    this.image_url = `https://image.tmdb.org/t/p/w500${obj.backdrop_path}`;
     this.popularity = obj.popularity;
     this.released_on = obj.release.date;
 }
@@ -63,7 +63,7 @@ app.get('/location', (request, response) => {
 
     dbClient.query(sql, searchValues)
         .then(store => {
-            if (store.rowCount > 0) {
+            if (store.rows[0]) {
                 response.status(200).send(store.rows[0]);
             } else {
                 superagent.get(locationUrl) 
@@ -112,30 +112,29 @@ app.get('/trails', (request, response) => {
             }) 
     })
 
-
 app.get('/yelp', (request, response) => {
-    let yelpUrl = `https://api.yelp.com/v3/businesses/search`;
+    const { latitude, longitude } = request.query;
+    let url = `https://api.yelp.com/v3/businesses/search?latitude=${latitude}&longitude=${longitude}`;
     const page = request.query.page;
     const numPerPage = 5;
     const start = (page - 1 * numPerPage);
 
     const queryParams = {
-        latitude: request.query.latitude,
-        longitude: request.query.longitude,
+        lat: request.query.latitude,
         limit: numPerPage,
-        offset: start
+        start: start,
+        lng: request.query.longitude
     }
-  
-    superagent.get(yelpUrl)
-    .set('Authorization', `Bearer ${process.env.YELP_API_KEY}`)
-    .query(queryParams)
-    .then(yelpResponse => {
-        const yelpData = yelpResponse.body.businesses.map(data => {
-         return new Yelp(data);
-        });
-        response.status(200).send(yelpData);
-      }).catch(error => errorHandler(error, request, response));
-  });
+
+    superagent.get(url).set({ 'Authorization': 'Bearer ' + process.env.YELP_API_KEY})
+        .query(queryParams)
+        .then(yelpResponse => {
+        const yelpData = yelpResponse.body.businesses;
+        response.send(yelpData.map(data => {
+            return new Yelp(data);
+        }));
+        }).catch(error => errorHandler(error, request, response));
+    });  
 
 app.get('/movies', (request, response) => {
     let city = request.query.search_query;
@@ -148,6 +147,7 @@ app.get('/movies', (request, response) => {
             response.send(movieData.map(data => {
                 return new Movie(data);
             }));
+            console.log(data);
         }).catch(error => errorHandler(error, request, response));
 }); 
 
